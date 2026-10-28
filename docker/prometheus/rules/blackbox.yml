@@ -1,0 +1,20 @@
+groups:
+  - name: blackbox-alerts
+    rules:
+      - alert: WebsiteDown
+        expr: probe_success{job="blackbox-https"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Site indisponible : {{ $labels.instance }}"
+          description: "Le test HTTPS échoue depuis plus de 2 minutes pour {{ $labels.instance }}."
+
+      - alert: SslCertificateExpiringSoon
+        expr: (probe_ssl_earliest_cert_expiry{job="blackbox-https"} - time()) / 86400 < 14
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Certificat TLS bientôt expiré : {{ $labels.instance }}"
+          description: "Le certificat de {{ $labels.instance }} expire dans {{ $value | humanize }} jours."
